@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { Calendar as CalendarIcon, Clock, MapPin, User, Video, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Clock, User, Video, ChevronLeft, ChevronRight } from 'lucide-react';
 import { Interview } from '@/types';
 import { getInterviews } from '@/lib/api';
 

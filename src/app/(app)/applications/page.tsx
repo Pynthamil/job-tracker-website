@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Search, Plus, Filter, MoreHorizontal, MapPin } from 'lucide-react';
+import { Search, Plus, MoreHorizontal, MapPin } from 'lucide-react';
 import { ApplicationStatus, Application } from '@/types';
 import { getApplications, addApplication } from '@/lib/api';
 
@@ -56,9 +56,10 @@ export default function ApplicationsPage() {
       setApplications(prev => [added, ...prev]);
       setIsModalOpen(false);
       setNewApp({ company: '', role: '', status: 'Wishlist', location: '' });
-    } catch (e: any) {
+    } catch (e) {
       console.error(e);
-      alert(`Failed to save application: ${e.message || 'Unknown error'}. This is likely due to Row Level Security (RLS) or Foreign Key constraints since we removed authentication.`);
+      const error = e as Error;
+      alert(`Failed to save application: ${error.message || 'Unknown error'}. This is likely due to Row Level Security (RLS) or Foreign Key constraints since we removed authentication.`);
     }
   };
 
