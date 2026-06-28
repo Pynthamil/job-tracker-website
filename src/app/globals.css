@@ -1,26 +1,35 @@
 @import "tailwindcss";
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
-
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+@theme {
+  --font-sans: var(--font-inter);
+  
+  --color-background: #F6F5FA;
+  --color-surface: #FFFFFF;
+  --color-surface-secondary: #F4F4F6;
+  
+  --color-text-primary: #464655;
+  --color-text-secondary: #626271;
+  --color-text-tertiary: #90909F;
+  
+  --color-primary: #FF5F28;
+  
+  /* Status Pill Colors */
+  --color-status-wishlist-text: #90909F;
+  --color-status-wishlist-bg: rgba(144, 144, 159, 0.12);
+  --color-status-applied-text: #007AFF;
+  --color-status-applied-bg: rgba(0, 122, 255, 0.12);
+  --color-status-oa-text: #AF52DE;
+  --color-status-oa-bg: rgba(175, 82, 222, 0.12);
+  --color-status-interview-text: #FF8A63;
+  --color-status-interview-bg: rgba(255, 138, 99, 0.12);
+  --color-status-offer-text: #34C759;
+  --color-status-offer-bg: rgba(52, 199, 89, 0.12);
+  --color-status-rejected-text: #FF3B30;
+  --color-status-rejected-bg: rgba(255, 59, 48, 0.12);
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  background-color: var(--color-background);
+  color: var(--color-text-primary);
+  font-family: var(--font-sans);
 }
