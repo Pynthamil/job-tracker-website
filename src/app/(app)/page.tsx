@@ -1,34 +1,11 @@
 'use client';
 
+import { useState, useEffect, useMemo } from 'react';
 import { motion } from 'framer-motion';
-import { Briefcase, Calendar, CheckCircle, Clock, Building, MapPin, XCircle, ArrowRight } from 'lucide-react';
+import { Briefcase, Calendar, CheckCircle, Clock, MapPin, ArrowRight } from 'lucide-react';
 import Link from 'next/link';
-import { ApplicationStatus } from '@/types';
-
-// Mock Data for UI presentation
-const stats = [
-  { label: 'Total Applications', value: 42, icon: Briefcase, color: 'text-primary', bg: 'bg-primary/10' },
-  { label: 'Interviews', value: 12, icon: Calendar, color: 'text-status-interview-text', bg: 'bg-status-interview-bg' },
-  { label: 'Offers', value: 3, icon: CheckCircle, color: 'text-status-offer-text', bg: 'bg-status-offer-bg' },
-  { label: 'Pending', value: 15, icon: Clock, color: 'text-status-applied-text', bg: 'bg-status-applied-bg' },
-];
-
-const recentUpdates = [
-  { id: 1, company: 'Google', role: 'Senior Frontend Engineer', status: 'Interview', date: '2 hours ago', location: 'Mountain View, CA' },
-  { id: 2, company: 'Apple', role: 'UI Developer', status: 'Applied', date: '5 hours ago', location: 'Cupertino, CA' },
-  { id: 3, company: 'Stripe', role: 'Software Engineer', status: 'OA', date: '1 day ago', location: 'Remote' },
-];
-
-const upcomingInterviews = [
-  { id: 1, company: 'Google', role: 'Senior Frontend Engineer', date: 'Tomorrow', time: '10:00 AM', platform: 'Google Meet', interviewer: 'Sarah Drasner' },
-  { id: 2, company: 'Netflix', role: 'UI Engineer', date: 'Next Tuesday', time: '2:30 PM', platform: 'Zoom', interviewer: 'Unknown' },
-];
-
-const roleFocus = [
-  { role: 'Frontend Engineer', percentage: 65, color: '#FF5F28' },
-  { role: 'Fullstack Engineer', percentage: 25, color: '#007AFF' },
-  { role: 'Mobile Engineer', percentage: 10, color: '#AF52DE' },
-];
+import { Application, Interview } from '@/types';
+import { getApplications, getInterviews } from '@/lib/api';
 
 const getStatusColor = (status: string) => {
   switch (status) {
@@ -56,6 +33,67 @@ const item = {
 };
 
 export default function Dashboard() {
+  const [applications, setApplications] = useState<Application[]>([]);
+  const [interviews, setInterviews] = useState<Interview[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    async function loadData() {
+      const [appsData, interviewsData] = await Promise.all([
+        getApplications(),
+        getInterviews()
+      ]);
+      setApplications(appsData);
+      setInterviews(interviewsData);
+      setIsLoading(false);
+    }
+    loadData();
+  }, []);
+
+  const stats = useMemo(() => {
+    return [
+      { label: 'Total Applications', value: applications.length, icon: Briefcase, color: 'text-primary', bg: 'bg-primary/10' },
+      { label: 'Interviews', value: applications.filter(a => ['Interview', 'Offer', 'Rejected'].includes(a.status) && a.status !== 'OA').length, icon: Calendar, color: 'text-status-interview-text', bg: 'bg-status-interview-bg' },
+      { label: 'Offers', value: applications.filter(a => a.status === 'Offer').length, icon: CheckCircle, color: 'text-status-offer-text', bg: 'bg-status-offer-bg' },
+      { label: 'Pending', value: applications.filter(a => ['Wishlist', 'Applied', 'OA'].includes(a.status)).length, icon: Clock, color: 'text-status-applied-text', bg: 'bg-status-applied-bg' },
+    ];
+  }, [applications]);
+
+  const recentUpdates = useMemo(() => {
+    return [...applications].slice(0, 3);
+  }, [applications]);
+
+  const upcomingInterviews = useMemo(() => {
+    return [...interviews].slice(0, 3);
+  }, [interviews]);
+
+  const roleFocus = useMemo(() => {
+    const roles: Record<string, number> = {};
+    applications.forEach(app => {
+      let category = 'Other';
+      const title = app.role.toLowerCase();
+      if (title.includes('frontend') || title.includes('ui')) category = 'Frontend Engineer';
+      else if (title.includes('backend') || title.includes('server')) category = 'Backend Engineer';
+      else if (title.includes('full') || title.includes('fullstack')) category = 'Fullstack Engineer';
+      else if (title.includes('mobile') || title.includes('ios') || title.includes('android')) category = 'Mobile Engineer';
+      
+      roles[category] = (roles[category] || 0) + 1;
+    });
+
+    const total = applications.length || 1;
+    const colors = ['#FF5F28', '#007AFF', '#AF52DE', '#34C759'];
+    
+    return Object.entries(roles).map(([role, count], index) => ({
+      role,
+      percentage: Math.round((count / total) * 100),
+      color: colors[index % colors.length]
+    })).sort((a, b) => b.percentage - a.percentage).slice(0, 3);
+  }, [applications]);
+
+  if (isLoading) {
+    return <div className="p-12 text-center text-text-tertiary">Loading dashboard...</div>;
+  }
+
   return (
     <motion.div 
       className="space-y-8"
@@ -65,7 +103,7 @@ export default function Dashboard() {
     >
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
         <div>
-          <motion.h1 variants={item} className="text-3xl font-bold tracking-tight">Welcome back, Alex</motion.h1>
+          <motion.h1 variants={item} className="text-3xl font-bold tracking-tight">Welcome back, Pyni</motion.h1>
           <motion.p variants={item} className="text-text-secondary mt-1">Here is what is happening with your job search today.</motion.p>
         </div>
         <motion.div variants={item}>
@@ -108,7 +146,7 @@ export default function Dashboard() {
               </Link>
             </div>
             <div className="divide-y divide-surface-secondary">
-              {recentUpdates.map((update) => (
+              {recentUpdates.length > 0 ? recentUpdates.map((update) => (
                 <div key={update.id} className="p-5 hover:bg-surface-secondary/50 transition-colors flex items-center justify-between group cursor-pointer">
                   <div className="flex items-center gap-4">
                     <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-gray-100 to-gray-200 border border-gray-200 flex items-center justify-center font-bold text-gray-600 shadow-sm group-hover:scale-105 transition-transform">
@@ -120,7 +158,7 @@ export default function Dashboard() {
                         <span className="text-sm font-medium text-text-secondary">{update.role}</span>
                         <span className="w-1 h-1 rounded-full bg-surface-secondary"></span>
                         <span className="text-xs text-text-tertiary flex items-center gap-1">
-                          <MapPin className="w-3 h-3" /> {update.location}
+                          <MapPin className="w-3 h-3" /> {update.location || 'Remote'}
                         </span>
                       </div>
                     </div>
@@ -129,10 +167,12 @@ export default function Dashboard() {
                     <span className={`px-3 py-1 rounded-full text-xs font-bold ${getStatusColor(update.status)}`}>
                       {update.status}
                     </span>
-                    <span className="text-xs font-medium text-text-tertiary">{update.date}</span>
+                    <span className="text-xs font-medium text-text-tertiary">{update.date_applied || 'Recent'}</span>
                   </div>
                 </div>
-              ))}
+              )) : (
+                <div className="p-8 text-center text-text-tertiary text-sm">No recent applications found.</div>
+              )}
             </div>
           </motion.div>
 
@@ -140,7 +180,7 @@ export default function Dashboard() {
           <motion.div variants={item} className="bg-surface rounded-2xl border border-surface-secondary shadow-sm p-6">
             <h2 className="text-lg font-bold mb-6">Role Focus</h2>
             <div className="space-y-4">
-              <div className="flex h-3 rounded-full overflow-hidden">
+              <div className="flex h-3 rounded-full overflow-hidden bg-surface-secondary">
                 {roleFocus.map((role, i) => (
                   <motion.div 
                     key={i} 
@@ -179,7 +219,7 @@ export default function Dashboard() {
             </div>
             
             <div className="space-y-4">
-              {upcomingInterviews.map((interview) => (
+              {upcomingInterviews.length > 0 ? upcomingInterviews.map((interview) => (
                 <div key={interview.id} className="p-4 rounded-xl border border-surface-secondary hover:border-status-interview-text/30 bg-gradient-to-b from-white to-surface-secondary/20 transition-all shadow-sm group">
                   <div className="flex justify-between items-start mb-3">
                     <div className="flex items-center gap-3">
@@ -196,17 +236,19 @@ export default function Dashboard() {
                   <div className="grid grid-cols-2 gap-3 mt-4 pt-4 border-t border-surface-secondary/50">
                     <div>
                       <p className="text-[10px] uppercase font-bold text-text-tertiary mb-1">Date & Time</p>
-                      <p className="text-xs font-medium text-text-primary">{interview.date}</p>
-                      <p className="text-xs font-medium text-text-secondary">{interview.time}</p>
+                      <p className="text-xs font-medium text-text-primary">{interview.interview_date || 'TBD'}</p>
+                      <p className="text-xs font-medium text-text-secondary">{interview.interview_time || 'TBD'}</p>
                     </div>
                     <div>
                       <p className="text-[10px] uppercase font-bold text-text-tertiary mb-1">Platform</p>
-                      <p className="text-xs font-medium text-text-primary">{interview.platform}</p>
-                      <p className="text-xs font-medium text-text-secondary">{interview.interviewer}</p>
+                      <p className="text-xs font-medium text-text-primary">{interview.platform || 'TBD'}</p>
+                      <p className="text-xs font-medium text-text-secondary">{interview.interviewer_name || 'TBD'}</p>
                     </div>
                   </div>
                 </div>
-              ))}
+              )) : (
+                 <div className="p-8 text-center text-text-tertiary text-sm">No upcoming interviews.</div>
+              )}
               
               <Link href="/calendar" className="block w-full py-3 text-center text-sm font-bold text-text-secondary hover:text-primary transition-colors bg-surface-secondary/50 hover:bg-surface-secondary rounded-xl">
                 View Full Calendar

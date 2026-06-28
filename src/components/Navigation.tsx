@@ -26,9 +26,9 @@ export default function Navigation() {
       <aside className="hidden md:flex flex-col w-64 bg-surface border-r border-surface-secondary px-4 py-8 h-full sticky top-0 shadow-sm">
         <div className="flex items-center gap-3 px-2 mb-10">
           <div className="w-10 h-10 bg-primary/10 rounded-xl flex items-center justify-center text-primary font-bold text-xl">
-            JT
+            P
           </div>
-          <span className="text-xl font-bold text-text-primary tracking-tight">JobTracker</span>
+          <span className="text-xl font-bold text-text-primary tracking-tight">Pyni</span>
         </div>
 
         <nav className="flex-1 space-y-2">

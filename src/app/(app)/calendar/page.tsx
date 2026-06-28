@@ -1,18 +1,23 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { Calendar as CalendarIcon, Clock, MapPin, User, Video, ChevronLeft, ChevronRight } from 'lucide-react';
-
-const upcomingInterviews = [
-  { id: '1', company: 'Google', role: 'Senior Frontend Engineer', date: '2026-06-29', displayDate: 'Tomorrow', time: '10:00 AM - 11:00 AM', platform: 'Google Meet', interviewer: 'Sarah Drasner', type: 'Technical' },
-  { id: '2', company: 'Netflix', role: 'UI Engineer', date: '2026-07-02', displayDate: 'Jul 2, 2026', time: '2:30 PM - 4:00 PM', platform: 'Zoom', interviewer: 'Unknown', type: 'System Design' },
-  { id: '3', company: 'Stripe', role: 'Software Engineer', date: '2026-07-05', displayDate: 'Jul 5, 2026', time: '1:00 PM - 1:45 PM', platform: 'Phone Call', interviewer: 'Recruiter', type: 'Behavioral' },
-];
+import { Interview } from '@/types';
+import { getInterviews } from '@/lib/api';
 
 export default function CalendarPage() {
-  // A simple mockup for a calendar view could just be a stylized list for now, 
-  // keeping the premium aesthetic with high-quality cards.
+  const [upcomingInterviews, setUpcomingInterviews] = useState<Interview[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    async function loadData() {
+      const data = await getInterviews();
+      setUpcomingInterviews(data);
+      setIsLoading(false);
+    }
+    loadData();
+  }, []);
   
   return (
     <div className="space-y-6">
@@ -48,7 +53,11 @@ export default function CalendarPage() {
             <div className="grid grid-cols-7 gap-1 text-center">
               {Array.from({ length: 30 }).map((_, i) => {
                 const day = i + 1;
-                const hasInterview = day === 29 || day === 2 || day === 5;
+                // Just a mock display for the widget
+                const hasInterview = upcomingInterviews.some(interview => {
+                  if (!interview.interview_date) return false;
+                  return parseInt(interview.interview_date.split('-')[2]) === day;
+                });
                 const isToday = day === 28;
                 return (
                   <button 
@@ -71,73 +80,84 @@ export default function CalendarPage() {
         {/* Right column: Upcoming Interviews List */}
         <div className="lg:col-span-2">
           <div className="space-y-4">
-            {upcomingInterviews.map((interview, index) => (
-              <motion.div 
-                key={interview.id}
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.2, delay: index * 0.1 }}
-                className="bg-surface p-6 rounded-2xl border border-surface-secondary shadow-sm hover:shadow-md hover:border-status-interview-text/30 transition-all group"
-              >
-                <div className="flex flex-col md:flex-row gap-6">
-                  
-                  {/* Date Block */}
-                  <div className="md:w-32 shrink-0 flex flex-col justify-center items-center p-4 bg-surface-secondary/30 rounded-xl border border-surface-secondary">
-                    <span className="text-xs font-bold text-status-interview-text uppercase tracking-wider mb-1">Upcoming</span>
-                    <span className="text-2xl font-bold text-text-primary text-center leading-tight">
-                      {interview.date.split('-')[2]}
-                    </span>
-                    <span className="text-sm font-medium text-text-secondary">June</span>
-                  </div>
-                  
-                  {/* Details Block */}
-                  <div className="flex-1">
-                    <div className="flex justify-between items-start mb-2">
-                      <div>
-                        <h3 className="text-xl font-bold text-text-primary">{interview.company}</h3>
-                        <p className="text-text-secondary font-medium">{interview.role}</p>
-                      </div>
-                      <span className="px-3 py-1 bg-status-interview-bg text-status-interview-text text-xs font-bold rounded-full">
-                        {interview.type}
+            {isLoading ? (
+               <div className="p-12 text-center text-text-tertiary">Loading interviews...</div>
+            ) : upcomingInterviews.length > 0 ? (
+              upcomingInterviews.map((interview, index) => (
+                <motion.div 
+                  key={interview.id}
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.2, delay: index * 0.1 }}
+                  className="bg-surface p-6 rounded-2xl border border-surface-secondary shadow-sm hover:shadow-md hover:border-status-interview-text/30 transition-all group"
+                >
+                  <div className="flex flex-col md:flex-row gap-6">
+                    
+                    {/* Date Block */}
+                    <div className="md:w-32 shrink-0 flex flex-col justify-center items-center p-4 bg-surface-secondary/30 rounded-xl border border-surface-secondary">
+                      <span className="text-xs font-bold text-status-interview-text uppercase tracking-wider mb-1">Upcoming</span>
+                      <span className="text-2xl font-bold text-text-primary text-center leading-tight">
+                        {interview.interview_date ? interview.interview_date.split('-')[2] : 'TBD'}
+                      </span>
+                      <span className="text-sm font-medium text-text-secondary">
+                         {interview.interview_date ? new Date(interview.interview_date).toLocaleString('default', { month: 'long' }) : ''}
                       </span>
                     </div>
                     
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-6">
-                      <div className="flex items-center gap-3 text-sm">
-                        <div className="w-8 h-8 rounded-lg bg-surface-secondary flex items-center justify-center text-text-tertiary">
-                          <Clock className="w-4 h-4" />
-                        </div>
+                    {/* Details Block */}
+                    <div className="flex-1">
+                      <div className="flex justify-between items-start mb-2">
                         <div>
-                          <p className="text-[10px] font-bold text-text-tertiary uppercase">Time</p>
-                          <p className="font-medium text-text-primary">{interview.time}</p>
+                          <h3 className="text-xl font-bold text-text-primary">{interview.company}</h3>
+                          <p className="text-text-secondary font-medium">{interview.role}</p>
                         </div>
+                        <span className="px-3 py-1 bg-status-interview-bg text-status-interview-text text-xs font-bold rounded-full">
+                          {interview.type || 'Interview'}
+                        </span>
                       </div>
-                      <div className="flex items-center gap-3 text-sm">
-                        <div className="w-8 h-8 rounded-lg bg-surface-secondary flex items-center justify-center text-text-tertiary">
-                          <Video className="w-4 h-4" />
+                      
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-6">
+                        <div className="flex items-center gap-3 text-sm">
+                          <div className="w-8 h-8 rounded-lg bg-surface-secondary flex items-center justify-center text-text-tertiary">
+                            <Clock className="w-4 h-4" />
+                          </div>
+                          <div>
+                            <p className="text-[10px] font-bold text-text-tertiary uppercase">Time</p>
+                            <p className="font-medium text-text-primary">{interview.interview_time || 'TBD'}</p>
+                          </div>
                         </div>
-                        <div>
-                          <p className="text-[10px] font-bold text-text-tertiary uppercase">Platform</p>
-                          <p className="font-medium text-text-primary">{interview.platform}</p>
+                        <div className="flex items-center gap-3 text-sm">
+                          <div className="w-8 h-8 rounded-lg bg-surface-secondary flex items-center justify-center text-text-tertiary">
+                            <Video className="w-4 h-4" />
+                          </div>
+                          <div>
+                            <p className="text-[10px] font-bold text-text-tertiary uppercase">Platform</p>
+                            <p className="font-medium text-text-primary">{interview.platform || 'TBD'}</p>
+                          </div>
                         </div>
-                      </div>
-                      <div className="flex items-center gap-3 text-sm">
-                        <div className="w-8 h-8 rounded-lg bg-surface-secondary flex items-center justify-center text-text-tertiary">
-                          <User className="w-4 h-4" />
-                        </div>
-                        <div>
-                          <p className="text-[10px] font-bold text-text-tertiary uppercase">Interviewer</p>
-                          <p className="font-medium text-text-primary">{interview.interviewer}</p>
+                        <div className="flex items-center gap-3 text-sm">
+                          <div className="w-8 h-8 rounded-lg bg-surface-secondary flex items-center justify-center text-text-tertiary">
+                            <User className="w-4 h-4" />
+                          </div>
+                          <div>
+                            <p className="text-[10px] font-bold text-text-tertiary uppercase">Interviewer</p>
+                            <p className="font-medium text-text-primary">{interview.interviewer_name || 'TBD'}</p>
+                          </div>
                         </div>
                       </div>
                     </div>
                   </div>
-                </div>
-              </motion.div>
-            ))}
+                </motion.div>
+              ))
+            ) : (
+               <div className="p-12 text-center text-text-tertiary bg-surface rounded-2xl border border-surface-secondary shadow-sm">
+                 No upcoming interviews scheduled.
+               </div>
+            )}
           </div>
         </div>
       </div>
     </div>
   );
 }
+

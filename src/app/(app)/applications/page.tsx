@@ -1,19 +1,10 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Search, Plus, Filter, MoreHorizontal, MapPin } from 'lucide-react';
-import { ApplicationStatus } from '@/types';
-
-// Mock Data
-const initialApplications = [
-  { id: '1', company: 'Google', role: 'Senior Frontend Engineer', status: 'Interview', date_applied: '2026-06-25', location: 'Mountain View, CA', type: 'Full-time' },
-  { id: '2', company: 'Apple', role: 'UI Developer', status: 'Applied', date_applied: '2026-06-20', location: 'Cupertino, CA', type: 'Full-time' },
-  { id: '3', company: 'Stripe', role: 'Software Engineer', status: 'OA', date_applied: '2026-06-18', location: 'Remote', type: 'Full-time' },
-  { id: '4', company: 'Netflix', role: 'Senior React Developer', status: 'Wishlist', date_applied: null, location: 'Los Gatos, CA', type: 'Full-time' },
-  { id: '5', company: 'Meta', role: 'Frontend Engineer', status: 'Rejected', date_applied: '2026-05-10', location: 'Menlo Park, CA', type: 'Full-time' },
-  { id: '6', company: 'Amazon', role: 'SDE II', status: 'Offer', date_applied: '2026-04-01', location: 'Seattle, WA', type: 'Full-time' },
-];
+import { ApplicationStatus, Application } from '@/types';
+import { getApplications, addApplication } from '@/lib/api';
 
 const statuses: ApplicationStatus[] = ['Wishlist', 'Applied', 'OA', 'Interview', 'Offer', 'Rejected'];
 
@@ -33,8 +24,45 @@ export default function ApplicationsPage() {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedStatus, setSelectedStatus] = useState<ApplicationStatus | 'All'>('All');
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [applications, setApplications] = useState<Application[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
 
-  const filteredApps = initialApplications.filter(app => {
+  // Modal State
+  const [newApp, setNewApp] = useState({
+    company: '',
+    role: '',
+    status: 'Wishlist' as ApplicationStatus,
+    location: ''
+  });
+
+  useEffect(() => {
+    async function loadData() {
+      const data = await getApplications();
+      setApplications(data);
+      setIsLoading(false);
+    }
+    loadData();
+  }, []);
+
+  const handleSave = async () => {
+    try {
+      const added = await addApplication({
+        company: newApp.company,
+        role: newApp.role,
+        status: newApp.status,
+        location: newApp.location,
+        date_applied: new Date().toISOString().split('T')[0]
+      });
+      setApplications(prev => [added, ...prev]);
+      setIsModalOpen(false);
+      setNewApp({ company: '', role: '', status: 'Wishlist', location: '' });
+    } catch (e: any) {
+      console.error(e);
+      alert(`Failed to save application: ${e.message || 'Unknown error'}. This is likely due to Row Level Security (RLS) or Foreign Key constraints since we removed authentication.`);
+    }
+  };
+
+  const filteredApps = applications.filter(app => {
     const matchesSearch = app.company.toLowerCase().includes(searchQuery.toLowerCase()) || 
                           app.role.toLowerCase().includes(searchQuery.toLowerCase());
     const matchesStatus = selectedStatus === 'All' || app.status === selectedStatus;
@@ -103,7 +131,13 @@ export default function ApplicationsPage() {
             </thead>
             <tbody className="divide-y divide-surface-secondary">
               <AnimatePresence>
-                {filteredApps.length > 0 ? filteredApps.map((app, index) => (
+                {isLoading ? (
+                  <tr>
+                    <td colSpan={4} className="px-6 py-12 text-center text-text-tertiary">
+                      <div className="flex justify-center items-center h-full">Loading...</div>
+                    </td>
+                  </tr>
+                ) : filteredApps.length > 0 ? filteredApps.map((app, index) => (
                   <motion.tr 
                     key={app.id}
                     initial={{ opacity: 0, y: 10 }}
@@ -123,7 +157,7 @@ export default function ApplicationsPage() {
                             <span className="text-sm font-medium text-text-secondary">{app.role}</span>
                             <span className="w-1 h-1 rounded-full bg-surface-secondary"></span>
                             <span className="text-xs text-text-tertiary flex items-center gap-1">
-                              <MapPin className="w-3 h-3" /> {app.location}
+                              <MapPin className="w-3 h-3" /> {app.location || 'Remote'}
                             </span>
                           </div>
                         </div>
@@ -159,7 +193,7 @@ export default function ApplicationsPage() {
         </div>
       </div>
 
-      {/* New Application Modal Placeholder */}
+      {/* New Application Modal */}
       <AnimatePresence>
         {isModalOpen && (
           <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
@@ -179,35 +213,34 @@ export default function ApplicationsPage() {
               <div className="p-6 border-b border-surface-secondary flex justify-between items-center">
                 <h2 className="text-xl font-bold">New Application</h2>
                 <button onClick={() => setIsModalOpen(false)} className="p-2 text-text-tertiary hover:text-text-primary hover:bg-surface-secondary rounded-full transition-colors">
-                  <Filter className="w-5 h-5 opacity-0 absolute" />
                   <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
                 </button>
               </div>
               <div className="p-6 space-y-4">
                 <div className="space-y-2">
                   <label className="text-sm font-bold text-text-secondary">Company</label>
-                  <input type="text" placeholder="e.g. Google" className="w-full px-4 py-2.5 bg-surface-secondary/50 border border-transparent focus:border-primary/50 focus:bg-surface rounded-xl outline-none transition-all text-sm font-medium" />
+                  <input type="text" placeholder="e.g. Google" value={newApp.company} onChange={e => setNewApp({...newApp, company: e.target.value})} className="w-full px-4 py-2.5 bg-surface-secondary/50 border border-transparent focus:border-primary/50 focus:bg-surface rounded-xl outline-none transition-all text-sm font-medium" />
                 </div>
                 <div className="space-y-2">
                   <label className="text-sm font-bold text-text-secondary">Role</label>
-                  <input type="text" placeholder="e.g. Frontend Engineer" className="w-full px-4 py-2.5 bg-surface-secondary/50 border border-transparent focus:border-primary/50 focus:bg-surface rounded-xl outline-none transition-all text-sm font-medium" />
+                  <input type="text" placeholder="e.g. Frontend Engineer" value={newApp.role} onChange={e => setNewApp({...newApp, role: e.target.value})} className="w-full px-4 py-2.5 bg-surface-secondary/50 border border-transparent focus:border-primary/50 focus:bg-surface rounded-xl outline-none transition-all text-sm font-medium" />
                 </div>
                 <div className="grid grid-cols-2 gap-4">
                    <div className="space-y-2">
                     <label className="text-sm font-bold text-text-secondary">Status</label>
-                    <select className="w-full px-4 py-2.5 bg-surface-secondary/50 border border-transparent focus:border-primary/50 focus:bg-surface rounded-xl outline-none transition-all text-sm font-medium appearance-none">
+                    <select value={newApp.status} onChange={e => setNewApp({...newApp, status: e.target.value as ApplicationStatus})} className="w-full px-4 py-2.5 bg-surface-secondary/50 border border-transparent focus:border-primary/50 focus:bg-surface rounded-xl outline-none transition-all text-sm font-medium appearance-none">
                       {statuses.map(s => <option key={s} value={s}>{s}</option>)}
                     </select>
                   </div>
                   <div className="space-y-2">
                     <label className="text-sm font-bold text-text-secondary">Location</label>
-                    <input type="text" placeholder="e.g. Remote" className="w-full px-4 py-2.5 bg-surface-secondary/50 border border-transparent focus:border-primary/50 focus:bg-surface rounded-xl outline-none transition-all text-sm font-medium" />
+                    <input type="text" placeholder="e.g. Remote" value={newApp.location} onChange={e => setNewApp({...newApp, location: e.target.value})} className="w-full px-4 py-2.5 bg-surface-secondary/50 border border-transparent focus:border-primary/50 focus:bg-surface rounded-xl outline-none transition-all text-sm font-medium" />
                   </div>
                 </div>
               </div>
               <div className="p-6 border-t border-surface-secondary bg-surface-secondary/20 flex justify-end gap-3">
                 <button onClick={() => setIsModalOpen(false)} className="px-5 py-2.5 rounded-xl font-bold text-text-secondary hover:bg-surface-secondary transition-colors">Cancel</button>
-                <button onClick={() => setIsModalOpen(false)} className="px-5 py-2.5 rounded-xl font-bold bg-primary hover:bg-primary-hover text-white transition-colors shadow-sm shadow-primary/20">Save Application</button>
+                <button onClick={handleSave} className="px-5 py-2.5 rounded-xl font-bold bg-primary hover:bg-primary-hover text-white transition-colors shadow-sm shadow-primary/20">Save Application</button>
               </div>
             </motion.div>
           </div>

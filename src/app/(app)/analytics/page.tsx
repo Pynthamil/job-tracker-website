@@ -1,37 +1,87 @@
 'use client';
 
+import { useState, useEffect, useMemo } from 'react';
 import { motion } from 'framer-motion';
 import { 
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
-  PieChart, Pie, Cell, AreaChart, Area
+  AreaChart, Area, Cell
 } from 'recharts';
 import { TrendingUp, Target, Award, MousePointerClick } from 'lucide-react';
-
-const funnelData = [
-  { name: 'Applied', value: 120 },
-  { name: 'OA', value: 45 },
-  { name: 'Interview', value: 15 },
-  { name: 'Offer', value: 3 },
-];
-
-const timelineData = [
-  { name: 'Jan', applications: 10 },
-  { name: 'Feb', applications: 25 },
-  { name: 'Mar', applications: 40 },
-  { name: 'Apr', applications: 20 },
-  { name: 'May', applications: 15 },
-  { name: 'Jun', applications: 10 },
-];
+import { getApplications } from '@/lib/api';
+import { Application } from '@/types';
 
 const COLORS = ['#007AFF', '#AF52DE', '#FF8A63', '#34C759'];
 
-const stats = [
-  { label: 'Total Applications', value: '120', trend: '+12% this month', icon: MousePointerClick, color: 'text-primary' },
-  { label: 'Interview Rate', value: '12.5%', trend: '+2.1% this month', icon: Target, color: 'text-status-interview-text' },
-  { label: 'Offer Rate', value: '2.5%', trend: 'Steady', icon: Award, color: 'text-status-offer-text' },
-];
-
 export default function AnalyticsPage() {
+  const [applications, setApplications] = useState<Application[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    async function loadData() {
+      const data = await getApplications();
+      setApplications(data);
+      setIsLoading(false);
+    }
+    loadData();
+  }, []);
+
+  const funnelData = useMemo(() => {
+    const applied = applications.length;
+    const oa = applications.filter(a => ['OA', 'Interview', 'Offer', 'Rejected'].includes(a.status)).length;
+    const interview = applications.filter(a => ['Interview', 'Offer', 'Rejected'].includes(a.status) && a.status !== 'OA').length;
+    const offer = applications.filter(a => a.status === 'Offer').length;
+    
+    return [
+      { name: 'Applied', value: applied },
+      { name: 'OA', value: oa },
+      { name: 'Interview', value: interview },
+      { name: 'Offer', value: offer },
+    ];
+  }, [applications]);
+
+  const timelineData = useMemo(() => {
+    // Simple mock timeline calculation based on actual data
+    // Group by month
+    const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+    const counts = new Array(12).fill(0);
+    
+    applications.forEach(app => {
+      if (app.date_applied) {
+        const date = new Date(app.date_applied);
+        counts[date.getMonth()] += 1;
+      }
+    });
+
+    const currentMonth = new Date().getMonth();
+    // Show last 6 months
+    return Array.from({length: 6}).map((_, i) => {
+      const monthIdx = (currentMonth - 5 + i + 12) % 12;
+      return {
+        name: months[monthIdx],
+        applications: counts[monthIdx]
+      };
+    });
+  }, [applications]);
+
+  const stats = useMemo(() => {
+    const total = applications.length;
+    const interviewCount = funnelData.find(f => f.name === 'Interview')?.value || 0;
+    const offerCount = funnelData.find(f => f.name === 'Offer')?.value || 0;
+    
+    const interviewRate = total > 0 ? ((interviewCount / total) * 100).toFixed(1) + '%' : '0%';
+    const offerRate = total > 0 ? ((offerCount / total) * 100).toFixed(1) + '%' : '0%';
+    
+    return [
+      { label: 'Total Applications', value: total.toString(), trend: 'Active', icon: MousePointerClick, color: 'text-primary' },
+      { label: 'Interview Rate', value: interviewRate, trend: 'Tracked', icon: Target, color: 'text-status-interview-text' },
+      { label: 'Offer Rate', value: offerRate, trend: 'Tracked', icon: Award, color: 'text-status-offer-text' },
+    ];
+  }, [applications, funnelData]);
+
+  if (isLoading) {
+    return <div className="p-12 text-center text-text-tertiary">Loading analytics...</div>;
+  }
+
   return (
     <div className="space-y-6">
       <div>
@@ -56,7 +106,7 @@ export default function AnalyticsPage() {
                 </div>
                 <div className="flex items-center gap-1 text-xs font-bold text-status-offer-text bg-status-offer-bg px-2 py-1 rounded-lg">
                   <TrendingUp className="w-3 h-3" />
-                  {stat.trend.split(' ')[0]}
+                  {stat.trend}
                 </div>
               </div>
               <p className="text-3xl font-bold text-text-primary">{stat.value}</p>
@@ -127,3 +177,4 @@ export default function AnalyticsPage() {
     </div>
   );
 }
+

@@ -8,7 +8,7 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
-  title: "JobTracker",
+  title: "Pyni",
   description: "Premium job application tracker",
 };
 
