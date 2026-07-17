@@ -74,10 +74,13 @@ export default function Dashboard() {
     applications.forEach(app => {
       let category = 'Other';
       const title = app.role.toLowerCase();
-      if (title.includes('frontend') || title.includes('ui')) category = 'Frontend Engineer';
-      else if (title.includes('backend') || title.includes('server')) category = 'Backend Engineer';
+      if (title.includes('frontend') || title.includes('ui') || title.includes('web')) category = 'Frontend Engineer';
+      else if (title.includes('backend') || title.includes('server') || title.includes('infrastructure')) category = 'Backend Engineer';
       else if (title.includes('full') || title.includes('fullstack')) category = 'Fullstack Engineer';
       else if (title.includes('mobile') || title.includes('ios') || title.includes('android')) category = 'Mobile Engineer';
+      else if (title.includes('design') || title.includes('ux')) category = 'Design Engineer';
+      else if (title.includes('data') || title.includes('machine learning') || title.includes('ml') || title.includes('ai')) category = 'Data / AI Engineer';
+      else if (title.includes('product') || title.includes('manager') || title.includes('pm')) category = 'Product Manager';
       
       roles[category] = (roles[category] || 0) + 1;
     });
