@@ -10,7 +10,7 @@ import { TrendingUp, Target, Award, MousePointerClick } from 'lucide-react';
 import { getApplications } from '@/lib/api';
 import { Application } from '@/types';
 
-const COLORS = ['#007AFF', '#AF52DE', '#FF8A63', '#34C759'];
+const COLORS = ['#0066FF', '#FF7300', '#FFC107', '#34C759'];
 
 export default function AnalyticsPage() {
   const [applications, setApplications] = useState<Application[]>([]);
@@ -98,7 +98,7 @@ export default function AnalyticsPage() {
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: index * 0.1 }}
-              className="bg-surface p-6 rounded-2xl border border-surface-secondary shadow-sm"
+              className="bg-surface p-6 rounded-2xl border border-surface-secondary"
             >
               <div className="flex justify-between items-start mb-4">
                 <div className={`p-3 rounded-xl bg-surface-secondary ${stat.color}`}>
@@ -122,7 +122,7 @@ export default function AnalyticsPage() {
           initial={{ opacity: 0, scale: 0.95 }}
           animate={{ opacity: 1, scale: 1 }}
           transition={{ delay: 0.3 }}
-          className="bg-surface p-6 rounded-2xl border border-surface-secondary shadow-sm"
+          className="bg-surface p-6 rounded-2xl border border-surface-secondary"
         >
           <h2 className="text-lg font-bold mb-6">Conversion Funnel</h2>
           <div className="h-80">
@@ -150,7 +150,7 @@ export default function AnalyticsPage() {
           initial={{ opacity: 0, scale: 0.95 }}
           animate={{ opacity: 1, scale: 1 }}
           transition={{ delay: 0.4 }}
-          className="bg-surface p-6 rounded-2xl border border-surface-secondary shadow-sm"
+          className="bg-surface p-6 rounded-2xl border border-surface-secondary"
         >
           <h2 className="text-lg font-bold mb-6">Application Timeline</h2>
           <div className="h-80">
@@ -158,17 +158,17 @@ export default function AnalyticsPage() {
               <AreaChart data={timelineData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
                 <defs>
                   <linearGradient id="colorApps" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="#FF5F28" stopOpacity={0.3}/>
-                    <stop offset="95%" stopColor="#FF5F28" stopOpacity={0}/>
+                    <stop offset="5%" stopColor="#0066FF" stopOpacity={0.3}/>
+                    <stop offset="95%" stopColor="#0066FF" stopOpacity={0}/>
                   </linearGradient>
                 </defs>
-                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#E5E5EA" />
-                <XAxis dataKey="name" tick={{ fill: '#90909F', fontSize: 12 }} axisLine={false} tickLine={false} dy={10} />
-                <YAxis tick={{ fill: '#90909F', fontSize: 12 }} axisLine={false} tickLine={false} />
+                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#EBEBEB" />
+                <XAxis dataKey="name" tick={{ fill: '#999999', fontSize: 12 }} axisLine={false} tickLine={false} dy={10} />
+                <YAxis tick={{ fill: '#999999', fontSize: 12 }} axisLine={false} tickLine={false} />
                 <Tooltip 
-                  contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 4px 20px rgba(0,0,0,0.08)' }}
+                  contentStyle={{ borderRadius: '12px', border: '1px solid #EBEBEB', boxShadow: 'none' }}
                 />
-                <Area type="monotone" dataKey="applications" stroke="#FF5F28" strokeWidth={3} fillOpacity={1} fill="url(#colorApps)" />
+                <Area type="monotone" dataKey="applications" stroke="#0066FF" strokeWidth={3} fillOpacity={1} fill="url(#colorApps)" />
               </AreaChart>
             </ResponsiveContainer>
           </div>

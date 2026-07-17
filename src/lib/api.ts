@@ -13,7 +13,7 @@ export async function getApplications(): Promise<Application[]> {
     .order('date_applied', { ascending: false });
 
   if (error) {
-    console.error('Error fetching applications:', error);
+    console.error('Error fetching applications:', JSON.stringify(error, null, 2), error);
     return [];
   }
   return data as Application[];
@@ -26,7 +26,7 @@ export async function getInterviews(): Promise<Interview[]> {
     .order('interview_date', { ascending: true });
 
   if (error) {
-    console.error('Error fetching interviews:', error);
+    console.error('Error fetching interviews:', JSON.stringify(error, null, 2), error);
     return [];
   }
   return data as Interview[];

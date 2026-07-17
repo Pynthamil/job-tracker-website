@@ -3,33 +3,43 @@
 @theme {
   --font-sans: var(--font-inter);
   
-  --color-background: #F6F5FA;
+  --color-background: #FFFFFF;
   --color-surface: #FFFFFF;
-  --color-surface-secondary: #F4F4F6;
+  --color-surface-secondary: #F7F7F7;
+  --color-border: #EBEBEB;
   
-  --color-text-primary: #464655;
-  --color-text-secondary: #626271;
-  --color-text-tertiary: #90909F;
+  --color-text-primary: #2D2D2D;
+  --color-text-secondary: #6B6B6B;
+  --color-text-tertiary: #999999;
   
-  --color-primary: #FF5F28;
+  --color-primary: #0066FF; /* Headspace Blue for buttons */
+  --color-accent: #FF7300; /* Headspace Orange for logo */
   
   /* Status Pill Colors */
-  --color-status-wishlist-text: #90909F;
-  --color-status-wishlist-bg: rgba(144, 144, 159, 0.12);
-  --color-status-applied-text: #007AFF;
-  --color-status-applied-bg: rgba(0, 122, 255, 0.12);
-  --color-status-oa-text: #AF52DE;
-  --color-status-oa-bg: rgba(175, 82, 222, 0.12);
-  --color-status-interview-text: #FF8A63;
-  --color-status-interview-bg: rgba(255, 138, 99, 0.12);
-  --color-status-offer-text: #34C759;
-  --color-status-offer-bg: rgba(52, 199, 89, 0.12);
-  --color-status-rejected-text: #FF3B30;
-  --color-status-rejected-bg: rgba(255, 59, 48, 0.12);
+  --color-status-wishlist-text: #666666;
+  --color-status-wishlist-bg: #F5F5F5;
+  --color-status-applied-text: #0055FF;
+  --color-status-applied-bg: #F0F4FF;
+  --color-status-oa-text: #8A2BE2;
+  --color-status-oa-bg: #F9F0FF;
+  --color-status-interview-text: #E55B00;
+  --color-status-interview-bg: #FFF5F0;
+  --color-status-offer-text: #007F00;
+  --color-status-offer-bg: #F0FFF0;
+  --color-status-rejected-text: #CC0000;
+  --color-status-rejected-bg: #FFF0F0;
+}
+
+html {
+  font-size: 18px;
 }
 
 body {
   background-color: var(--color-background);
   color: var(--color-text-primary);
   font-family: var(--font-sans);
+}
+
+.border-surface-secondary {
+  border-color: var(--color-border) !important;
 }

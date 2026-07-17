@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import Image from 'next/image';
 import { motion } from 'framer-motion';
 import { Clock, User, Video, ChevronLeft, ChevronRight } from 'lucide-react';
 import { Interview } from '@/types';
@@ -26,9 +27,9 @@ export default function CalendarPage() {
           <h1 className="text-3xl font-bold tracking-tight">Calendar</h1>
           <p className="text-text-secondary mt-1">Manage your upcoming interviews and deadlines.</p>
         </div>
-        <div className="flex items-center gap-2 bg-surface p-1 rounded-xl border border-surface-secondary shadow-sm">
-          <button className="p-2 bg-primary/10 text-primary rounded-lg font-medium text-sm transition-colors">List View</button>
-          <button className="p-2 text-text-secondary hover:text-text-primary rounded-lg font-medium text-sm transition-colors">Month View</button>
+        <div className="flex items-center gap-2 bg-surface p-1 rounded-md border border-surface-secondary">
+          <button className="px-3 py-1.5 bg-surface-secondary text-text-primary rounded text-sm font-medium transition-colors">List View</button>
+          <button className="px-3 py-1.5 text-text-secondary hover:text-text-primary rounded text-sm font-medium transition-colors">Month View</button>
         </div>
       </div>
 
@@ -36,12 +37,12 @@ export default function CalendarPage() {
         
         {/* Left column: Calendar Widget (Mock) */}
         <div className="lg:col-span-1 space-y-6">
-          <div className="bg-surface p-6 rounded-2xl border border-surface-secondary shadow-sm">
-            <div className="flex justify-between items-center mb-6">
-              <h2 className="font-bold text-lg">June 2026</h2>
+          <div className="bg-surface p-5 rounded-lg border border-surface-secondary">
+            <div className="flex justify-between items-center mb-5">
+              <h2 className="font-semibold text-base">June 2026</h2>
               <div className="flex items-center gap-1">
-                <button className="p-1 hover:bg-surface-secondary rounded-lg transition-colors"><ChevronLeft className="w-5 h-5" /></button>
-                <button className="p-1 hover:bg-surface-secondary rounded-lg transition-colors"><ChevronRight className="w-5 h-5" /></button>
+                <button className="p-1 hover:bg-surface-secondary rounded transition-colors"><ChevronLeft className="w-4 h-4" /></button>
+                <button className="p-1 hover:bg-surface-secondary rounded transition-colors"><ChevronRight className="w-4 h-4" /></button>
               </div>
             </div>
             
@@ -63,9 +64,9 @@ export default function CalendarPage() {
                   <button 
                     key={i} 
                     className={`
-                      aspect-square rounded-full flex items-center justify-center text-sm font-medium transition-colors
-                      ${isToday ? 'bg-primary text-white shadow-sm shadow-primary/20' : 'hover:bg-surface-secondary text-text-secondary'}
-                      ${hasInterview && !isToday ? 'text-primary font-bold bg-primary/5' : ''}
+                      aspect-square rounded flex items-center justify-center text-sm transition-colors
+                      ${isToday ? 'bg-text-primary text-white font-medium' : 'hover:bg-surface-secondary text-text-secondary'}
+                      ${hasInterview && !isToday ? 'font-semibold text-text-primary bg-surface-secondary/50' : ''}
                     `}
                   >
                     {day}
@@ -88,18 +89,18 @@ export default function CalendarPage() {
                   key={interview.id}
                   initial={{ opacity: 0, y: 10 }}
                   animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.2, delay: index * 0.1 }}
-                  className="bg-surface p-6 rounded-2xl border border-surface-secondary shadow-sm hover:shadow-md hover:border-status-interview-text/30 transition-all group"
+                  transition={{ duration: 0.15, delay: index * 0.1 }}
+                  className="bg-surface p-5 rounded-lg border border-surface-secondary transition-colors group"
                 >
                   <div className="flex flex-col md:flex-row gap-6">
                     
                     {/* Date Block */}
-                    <div className="md:w-32 shrink-0 flex flex-col justify-center items-center p-4 bg-surface-secondary/30 rounded-xl border border-surface-secondary">
-                      <span className="text-xs font-bold text-status-interview-text uppercase tracking-wider mb-1">Upcoming</span>
-                      <span className="text-2xl font-bold text-text-primary text-center leading-tight">
+                    <div className="md:w-24 shrink-0 flex flex-col justify-center items-center p-3 bg-surface rounded-md border border-surface-secondary">
+                      <span className="text-[10px] font-semibold text-text-tertiary uppercase tracking-wider mb-1">Upcoming</span>
+                      <span className="text-xl font-bold text-text-primary text-center leading-tight">
                         {interview.interview_date ? interview.interview_date.split('-')[2] : 'TBD'}
                       </span>
-                      <span className="text-sm font-medium text-text-secondary">
+                      <span className="text-xs text-text-secondary">
                          {interview.interview_date ? new Date(interview.interview_date).toLocaleString('default', { month: 'long' }) : ''}
                       </span>
                     </div>
@@ -116,31 +117,31 @@ export default function CalendarPage() {
                         </span>
                       </div>
                       
-                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-6">
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-5 pt-5 border-t border-surface-secondary">
                         <div className="flex items-center gap-3 text-sm">
-                          <div className="w-8 h-8 rounded-lg bg-surface-secondary flex items-center justify-center text-text-tertiary">
+                          <div className="w-8 h-8 rounded border border-surface-secondary bg-surface flex items-center justify-center text-text-secondary">
                             <Clock className="w-4 h-4" />
                           </div>
                           <div>
-                            <p className="text-[10px] font-bold text-text-tertiary uppercase">Time</p>
+                            <p className="text-[10px] font-semibold text-text-tertiary uppercase">Time</p>
                             <p className="font-medium text-text-primary">{interview.interview_time || 'TBD'}</p>
                           </div>
                         </div>
                         <div className="flex items-center gap-3 text-sm">
-                          <div className="w-8 h-8 rounded-lg bg-surface-secondary flex items-center justify-center text-text-tertiary">
+                          <div className="w-8 h-8 rounded border border-surface-secondary bg-surface flex items-center justify-center text-text-secondary">
                             <Video className="w-4 h-4" />
                           </div>
                           <div>
-                            <p className="text-[10px] font-bold text-text-tertiary uppercase">Platform</p>
+                            <p className="text-[10px] font-semibold text-text-tertiary uppercase">Platform</p>
                             <p className="font-medium text-text-primary">{interview.platform || 'TBD'}</p>
                           </div>
                         </div>
                         <div className="flex items-center gap-3 text-sm">
-                          <div className="w-8 h-8 rounded-lg bg-surface-secondary flex items-center justify-center text-text-tertiary">
+                          <div className="w-8 h-8 rounded border border-surface-secondary bg-surface flex items-center justify-center text-text-secondary">
                             <User className="w-4 h-4" />
                           </div>
                           <div>
-                            <p className="text-[10px] font-bold text-text-tertiary uppercase">Interviewer</p>
+                            <p className="text-[10px] font-semibold text-text-tertiary uppercase">Interviewer</p>
                             <p className="font-medium text-text-primary">{interview.interviewer_name || 'TBD'}</p>
                           </div>
                         </div>
@@ -150,8 +151,9 @@ export default function CalendarPage() {
                 </motion.div>
               ))
             ) : (
-               <div className="p-12 text-center text-text-tertiary bg-surface rounded-2xl border border-surface-secondary shadow-sm">
-                 No upcoming interviews scheduled.
+               <div className="p-12 text-center text-text-tertiary bg-surface rounded-lg border border-surface-secondary flex flex-col items-center justify-center">
+                 <Image src="/empty-state.jpg" alt="Empty calendar" width={160} height={160} className="mb-4 opacity-80" />
+                 <span className="font-medium text-sm text-text-secondary">No upcoming interviews scheduled.</span>
                </div>
             )}
           </div>
